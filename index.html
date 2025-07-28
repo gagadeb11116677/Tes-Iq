@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Test IQ Soul – Cerdas & Seru</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{
+    --main:#667eea;
+    --accent:#764ba2;
+    --correct:#4caf50;
+    --wrong:#f44336;
+}
+*{box-sizing:border-box;font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif}
+body{margin:0;background:linear-gradient(135deg,var(--main),var(--accent));min-height:100vh;display:flex;align-items:center;justify-content:center;padding:10px;color:#fff}
+#app{background:#fff;color:#000;border-radius:15px;padding:20px;max-width:400px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+h1,h2{margin:0 0 10px;text-align:center}
+label{display:block;margin:8px 0;font-weight:bold}
+select,button{width:100%;padding:10px;margin:5px 0;border-radius:8px;border:1px solid #aaa;font-size:1rem}
+button{background:var(--main);color:#fff;border:none;cursor:pointer}
+button:disabled{background:#aaa}
+#questionBox{display:none}
+#timer{font-weight:bold;font-size:1.2rem;text-align:center;margin-bottom:10px}
+#options button{display:block;width:100%;margin:5px 0;padding:10px;border-radius:8px;border:1px solid #ccc;background:#f5f5f5}
+#options button.correct{background:var(--correct);color:#fff;border:none}
+#options button.wrong{background:var(--wrong);color:#fff;border:none}
+#resultBox{display:none;text-align:center}
+#iqValue{font-size:2rem;font-weight:bold;color:var(--main)}
+</style>
+</head>
+<body>
+<div id="app">
+    <h1>Test IQ Soul</h1>
+
+    <!-- Menu -->
+    <div id="menu">
+        <label>Pilih kategori usia:</label>
+        <select id="ageSelect">
+            <option value="5-10">5-10 tahun</option>
+            <option value="10-20">10-20 tahun</option>
+            <option value="20-70">20-70 tahun</option>
+        </select>
+        <button onclick="startTest()">Mulai Test</button>
+    </div>
+
+    <!-- Soal -->
+    <div id="questionBox">
+        <div id="timer">30:00</div>
+        <div id="questionText"></div>
+        <div id="options"></div>
+        <small id="counter"></small>
+    </div>
+
+    <!-- Hasil -->
+    <div id="resultBox">
+        <h2>Hasil Test IQ Anda</h2>
+        <p>Skor: <span id="scoreRes"></span>/30</p>
+        <p>IQ: <span id="iqValue"></span></p>
+        <p id="iqText"></p><!-- Ubah ini: -->
+<!-- Ubah dari ini -->
+<!-- <button onclick="location.reload()">Ulangi Test</button> -->
+
+<!-- Jadi -->
+<button onclick="resetTest()">Ulangi Test</button>
+
+    </div>
+</div>
+
+<script>
+/* ========== BANK SOAL ========== */
+const bank={
+    "5-10":[
+        {q:"Berapa 2 + 3?",o:["4","5","6","7"],a:1},
+        {q:"Hewan apa yang berbunyi 'meong'?",o:["Ayam","Kucing","Sapi","Gajah"],a:1},
+        {q:"Warna langit biasanya?",o:["Merah","Hijau","Biru","Kuning"],a:2},
+        {q:"Yang terbang di langit dan berwarna putih?",o:["Awan","Batu","Pohon","Rumput"],a:0},
+        {q:"Berapa jumlah kaki manusia?",o:["1","2","3","4"],a:1},
+        {q:"Apa yang dihasilkan kambing?",o:["Telur","Susu","Mad","Daging"],a:1},
+        {q:"Yang berwarna merah, bulat dan bisa dimakan?",o:["Apel","Pensil","Buku","Kursi"],a:0},
+        {q:"Binatang berkaki empat dan suka tulang?",o:["Kucing","Anjing","Burung","Ikan"],a:1},
+        {q:"Berapa 5 - 2?",o:["2","3","4","5"],a:1},
+        {q:"Yang digunakan untuk menulis?",o:["Pensil","Sendok","Gelas","Piring"],a:0},
+        {q:"Hewan berkepala dua?",o:["Bebek","Ular","Ayam","Tidak ada"],a:3},
+        {q:"Yang berbunyi 'kukuruyuk'?",o:["Ayam","Bebek","Kucing","Anjing"],a:0},
+        {q:"Apa yang dipakai di kaki?",o:["Topi","Sepatu","Baju","Celana"],a:1},
+        {q:"Yang berwarna hijau daun?",o:["Daun","Langit","Matahari","Batu"],a:0},
+        {q:"Berapa jumlah hari dalam seminggu?",o:["5","6","7","8"],a:2},
+        {q:"Yang digunakan untuk memotong kertas?",o:["Gunting","Penggaris","Pensil","Pengapus"],a:0},
+        {q:"Binatang berkepala tiga?",o:["Naga","Gajah","Tidak ada","Kuda"],a:2},
+        {q:"Yang berwarna kuning dan bisa dimakan?",o:["Pisang","Jeruk","Apel","Semangka"],a:0},
+        {q:"Yang bisa terbang?",o:["Ayam","Burung","Sapi","Kucing"],a:1},
+        {q:"Apa yang digunakan untuk minum?",o:["Sendok","Gelas","Piring","Garpu"],a:1},
+        {q:"Berapa 1 + 1?",o:["1","2","3","4"],a:1},
+        {q:"Yang berwarna merah di lalu lintas?",o:["Lampu Merah","Lampu Hijau","Lampu Kuning","Lampu Biru"],a:0},
+        {q:"Yang berbunyi 'moo'?",o:["Sapi","Kambing","Kuda","Domba"],a:0},
+        {q:"Apa yang dipakai di kepala?",o:["Topi","Sepatu","Kaus","Rok"],a:0},
+        {q:"Binatang peliharaan kecil?",o:["Gajah","Kucing","Jerapah","Zebra"],a:1},
+        {q:"Yang bisa berenang?",o:["Ikan","Burung","Kucing","Ayam"],a:0},
+        {q:"Apa yang digunakan untuk makan?",o:["Sendok","Buku","Pensil","Penggaris"],a:0},
+        {q:"Yang berwarna putih seperti kapas?",o:["Kapas","Kertas","Awan","Semua benar"],a:3},
+        {q:"Berapa 4 + 4?",o:["6","7","8","9"],a:2},
+        {q:"Hewan yang suka keju?",o:["Tikus","Ayam","Kucing","Bebek"],a:0}
+    ],
+    "10-20":[
+        {q:"Jika 3x = 12, maka x = ?",o:["3","4","5","6"],a:1},
+        {q:"Berapa derajat sudut dalam satu putaran penuh?",o:["90","180","270","360"],a:3},
+        {q:"Yang manakah yang merupakan bilangan prima?",o:["4","6","7","9"],a:2},
+        {q:"Jarak = kecepatan × …",o:["Waktu","Massa","Volume","Berat"],a:0},
+        {q:"Akar kuadrat dari 144 adalah?",o:["10","11","12","13"],a:2},
+        {q:"Berapa sisi pada segitiga?",o:["2","3","4","5"],a:1},
+        {q:"2^3 = ?",o:["6","7","8","9"],a:2},
+        {q:"Berapa persen 50 dari 200?",o:["20","25","30","50"],a:1},
+        {q:"Jika a² = 49, maka a = ?",o:["6","7","8","9"],a:1},
+        {q:"Luas persegi panjang = panjang × …",o:["Lebar","Tinggi","Diagonal","Keliling"],a:0},
+        {q:"Berapa jumlah faktor dari 12?",o:["4","5","6","7"],a:2},
+        {q:"Yang merupakan bentuk akar dari 50?",o:["√50","5√2","2√5","10√5"],a:1},
+        {q:"Jika x + y = 10 dan x - y = 4, maka x = ?",o:["5","6","7","8"],a:2},
+        {q:"Faktor dari 18 yang juga bilangan prima adalah?",o:["2 dan 3","3 dan 6","1 dan 18","2 dan 9"],a:0},
+        {q:"Berapa keliling lingkaran dengan r=7 jika π=22/7?",o:["22","44","66","88"],a:1},
+        {q:"Berapa sudut pada jam 3:00?",o:["75°","90°","105°","120°"],a:1},
+        {q:"Jika 5x - 3 = 12, maka x = ?",o:["2","3","4","5"],a:1},
+        {q:"Bilangan berikut yang paling besar?",o:["0.5","0.55","0.505","0.555"],a:3},
+        {q:"Volume kubus = sisi pangkat …",o:["1","2","3","4"],a:2},
+        {q:"Jika 2x = 3y dan y = 4, maka x = ?",o:["5","6","7","8"],a:1},
+        {q:"Berapa jumlah sudut dalam segiempat?",o:["180","270","360","450"],a:2},
+        {q:"Yang bukan merupakan bentuk kuadrat sempurna?",o:["16","25","30","36"],a:2},
+        {q:"Jika a/b = 2/3 dan a = 8, maka b = ?",o:["10","12","14","16"],a:1},
+        {q:"Jarak terpendek antara dua titik adalah?",o:["Garis lengkung","Garis lurus","Garis patah","Garis melengkung"],a:1},
+        {q:"Faktorisasi dari x² - 9 adalah?",o:["(x-3)²","(x+3)²","(x-3)(x+3)","(x-9)(x+9)"],a:2},
+        {q:"Berapa besar sudut tumpul?",o:["<90°","=90°",">90°","=180°"],a:2},
+        {q:"Jika 3x + 5 = 20, maka x = ?",o:["4","5","6","7"],a:1},
+        {q:"Bilangan yang habis dibagi 2 dan 3 adalah?",o:["4","6","8","10"],a:1},
+        {q:"Pecahan desimal dari 3/8 adalah?",o:["0.375","0.25","0.5","0.625"],a:0},
+        {q:"Jika x² = 64, maka x = ?",o:["6","7","8","9"],a:2}
+    ],
+    "20-70":[
+        {q:"Jika 2x + 3y = 12 dan x - y = 1, maka x + y = ?",o:["4","5","6","7"],a:1},
+        {q:"Berapa probabilitas mendapatkan angka genap pada dadu 6 sisi?",o:["1/6","1/3","1/2","2/3"],a:2},
+        {q:"Dua bilangan berurutan yang jumlahnya 91 adalah?",o:["44 dan 45","45 dan 46","46 dan 47","47 dan 48"],a:1},
+        {q:"Modus dari data 2,3,3,4,5,5,5,6 adalah?",o:["3","4","5","6"],a:2},
+        {q:"Jika f(x)=2x+1, maka f(3)=?",o:["5","6","7","8"],a:2},
+        {q:"Peluang muncul gambar pada koin adalah?",o:["0","0.25","0.5","1"],a:2},
+        {q:"Jika a² + b² = 25 dan a = 3, maka b = ?",o:["3","4","5","6"],a:1},
+        {q:"Median dari 3,5,7,9,11 adalah?",o:["5","7","9","11"],a:1},
+        {q:"Jika log 2 = 0,3010, maka log 20 = ?",o:["1,3010","2,3010","0,6020","1,6020"],a:0},
+        {q:"Jumlah deret 1+2+3+...+20 = ?",o:["190","200","210","220"],a:2},
+        {q:"Jika x log 8 = 3, maka x = ?",o:["1","2","3","4"],a:1},
+        {q:"Luas segitiga dengan alas 10 dan tinggi 6 adalah?",o:["20","25","30","60"],a:2},
+        {q:"Jika 2x = 32, maka x = ?",o:["3","4","5","6"],a:2},
+        {q:"Berapa faktor dari 60?",o:["10","11","12","13"],a:2},
+        {q:"Jika a = 2b dan a + b = 15, maka a = ?",o:["8","9","10","11"],a:2},
+        {q:"Suku ke-10 dari barisan 3,7,11,15,... adalah?",o:["35","39","43","47"],a:1},
+        {q:"Jika sin θ = 3/5, maka cos θ = ?",o:["3/5","4/5","5/3","4/3"],a:1},
+        {q:"Jumlah tak hingga 1/2 + 1/4 + 1/8 + ... = ?",o:["1","2","3","4"],a:0},
+        {q:"Jika 3x - 2 = 7, maka x = ?",o:["2","3","4","5"],a:1},
+        {q:"Bilangan prima antara 20 dan 30 adalah?",o:["21,23","23,29","23,27","25,29"],a:1},
+        {q:"Jika x + 1/x = 2, maka x² + 1/x² = ?",o:["2","3","4","5"],a:0},
+        {q:"Volume bola dengan r=3 jika π=22/7 adalah?",o:["36π","113.14","339.43","1018.28"],a:2},
+        {q:"Jika 2^x = 8, maka x = ?",o:["2","3","4","5"],a:1},
+        {q:"Jarak antara titik (1,2) dan (4,6) adalah?",o:["3","4","5","6"],a:2},
+        {q:"Jika f(x)=x²+2x+1, maka f(-1)=?",o:["0","1","2","3"],a:0},
+        {q:"Limit x→2 (x²-4)/(x-2) = ?",o:["0","2","4","Tidak ada"],a:2},
+        {q:"Jika 2x + y = 8 dan x - y = 1, maka x = ?",o:["2","3","4","5"],a:1},
+        {q:"Berapa sudut antara jarum jam pada pukul 3:00?",o:["45°","90°","180°","270°"],a:1},
+        {q:"Jika det(A)=5, maka det(2A) untuk matriks 2×2 adalah?",o:["5","10","20","25"],a:2},
+        {q:"Jumlah n bilangan ganjil pertama adalah?",o:["n²","n(n+1)","n(n+1)/2","2n²"],a:0}
+    ]
+};
+
+/* ========== STATE ========== */
+let ageRange="";
+let questions=[];
+let qIndex=0;
+let score=0;
+let startTime=0;
+let timerInterval;
+
+/* ========== DOM ========== */
+const $=id=>document.getElementById(id);
+function show(id){
+    ['menu','questionBox','resultBox'].forEach(x=>$(x).style.display='none');
+    $(id).style.display='block';
+}
+
+/* ========== TIMER ========== */
+function updateTimer(){
+    const elapsed=Date.now()-startTime;
+    const left=30*60*1000-elapsed;
+    if(left<=0){
+        endTest();
+        return;
+    }
+    const m=Math.floor(left/60000);
+    const s=Math.floor((left%60000)/1000);
+    $('timer').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+}
+
+/* ========== START ========== */
+function startTest(){
+    ageRange=$('ageSelect').value;
+    questions=bank[ageRange].sort(()=>Math.random()-0.5).slice(0,30);
+    qIndex=0;
+    score=0;
+    show('questionBox');
+    renderQuestion();
+    startTime=Date.now();
+    timerInterval=setInterval(updateTimer,1000);
+}
+
+/* ========== RENDER SOAL ========== */
+function renderQuestion(){
+    const q=questions[qIndex];
+    $('questionText').textContent=(qIndex+1)+". "+q.q;
+    const opts=$('options');
+    opts.innerHTML="";
+    q.o.forEach((opt,i)=>{
+        const btn=document.createElement('button');
+        btn.textContent=opt;
+        btn.onclick=()=>answer(i);
+        opts.appendChild(btn);
+    });
+    $('counter').textContent=`${qIndex+1}/30`;
+}
+
+/* ========== ANSWER ========== */
+function answer(idx){
+    const q=questions[qIndex];
+    const btns=$('options').children;
+    btns[q.a].classList.add('correct');
+    if(idx!==q.a){
+        btns[idx].classList.add('wrong');
+    }else{
+        score++;
+    }
+    // disable all
+    Array.from(btns).forEach(b=>b.disabled=true);
+    setTimeout(()=>{
+        qIndex++;
+        if(qIndex<30){
+            renderQuestion();
+        }else{
+            endTest();
+        }
+    },800);
+}
+
+/* ========== END ========== */
+function endTest(){
+    clearInterval(timerInterval);
+    // IQ scale based on age
+    let iq;
+    const pct=score/30;
+    if(ageRange==="5-10"){
+        iq=Math.round(55+60*pct);   // 55-115
+    }else if(ageRange==="10-20"){
+        iq=Math.round(70+50*pct);   // 70-120
+    }else{ // 20-70
+        iq=Math.round(85+45*pct);   // 85-130
+    }
+    $('scoreRes').textContent=score;
+    $('iqValue').textContent=iq;
+    let txt="";
+    if(iq<90) txt="Rata-rata bawah";
+    else if(iq<110) txt="Rata-rata";
+    else if(iq<130) txt="Di atas rata-rata";
+    else txt="Superior";
+    $('iqText').textContent=txt;
+    show('resultBox');
+}
+
+  function resetTest(){
+    clearInterval(timerInterval);  // hentikan timer jika masih aktif
+    score = 0;
+    qIndex = 0;
+    questions = [];
+    $('ageSelect').value = "5-10"; // atur ulang pilihan default (bisa diubah)
+    $('timer').textContent = "30:00";
+    $('scoreRes').textContent = "";
+    $('iqValue').textContent = "";
+    $('iqText').textContent = "";
+    show('menu');  // tampilkan menu usia
+    window.scrollTo(0, 0); // scroll ke atas (penting untuk mobile)
+}
+
+</script>
+</body>
+</html>  
