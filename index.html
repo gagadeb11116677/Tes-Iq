@@ -21,7 +21,21 @@ button{background:var(--main);color:#fff;border:none;cursor:pointer}
 button:disabled{background:#aaa}
 #questionBox{display:none}
 #timer{font-weight:bold;font-size:1.2rem;text-align:center;margin-bottom:10px}
-#options button{display:block;width:100%;margin:5px 0;padding:10px;border-radius:8px;border:1px solid #ccc;background:#f5f5f5}
+#options button {
+    display:block;
+    width:100%;
+    margin:5px 0;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    background:#f5f5f5;
+    color:#000; /* ← TAMBAHKAN INI */
+    font-weight: bold;
+}
+#options button:hover {
+    background: #ddd;
+}
+
 #options button.correct{background:var(--correct);color:#fff;border:none}
 #options button.wrong{background:var(--wrong);color:#fff;border:none}
 #resultBox{display:none;text-align:center}
